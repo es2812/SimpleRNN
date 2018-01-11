@@ -1,31 +1,21 @@
-#Lecturade fichero
+#Lectura de fichero
 lines = csvread("../originalFiles/dat_entrada.csv");
 num_dias = length(lines(:,1));
 
 longitud_ventana = 20; #marca el numero de valores que cosiderar para cada prediccion.
 
 num_secuencias = num_dias-longitud_ventana;
-test =  zeros(num_secuencias,longitud_ventana+1);
+data =  zeros(num_secuencias,longitud_ventana+1);
 
 #extraemos todas las posibles secuencias, con el ultimo valor de la secuencia 
 #siendo el valor a predecir
 for i=1:num_secuencias
-  test(i,:) = lines(i:i+longitud_ventana)';
+  data(i,:) = lines(i:i+longitud_ventana)';
 endfor
 
-#2/3 para entrenamiento
-tam_training = ceil(num_secuencias*(2/3));
-#1/3 para test
-tam_test = num_secuencias - tam_training;
+[training, test] = holdout(data);
 
-#Hold-out NO randomizado
-indices_training = [1:tam_training];
-training = test(indices_training,:);
-test(indices_training,:) = [];
-
-%SE NORMALIZA CADA SECUENCIA POR SEPARADO
-
-capa_oculta = 4;
+capa_oculta = 10;
 capa_entrada = 1; #solo hay una neurona en la capa de entrada
 capa_auxiliar = capa_oculta; #una neurona por cada neurona de la capa oculta
 capa_salida =  1;
@@ -61,16 +51,8 @@ inercia_o = zeros(size(wo));
 
 grafica_error = zeros(max_epocas,1);
 
-function result = sigmoid(x)
-  result = (1./(1+exp(-x)));
-  return;
-endfunction
-
-function result = dsigmoid(f)
-  result = (f.*(1.-f));
-  return;
-endfunction
-
+tam_training = size(training)(1);
+tam_test = size(test)(1);
 
 for epoca=1:max_epocas
 
@@ -87,19 +69,13 @@ for epoca=1:max_epocas
     #cada secuencia X(i) = {x(i+1),x(i+2),...,x(i+19)->x(i+20)}
     #compararemos la salida de la red con x(i+20)
     
-    secuencia = training(i,1:longitud_ventana);
-    salida_deseada = training(i,longitud_ventana+1);
-    
-    %Normalizacion con desbordamiento del 20%
-    min_des = min([secuencia,salida_deseada]);
-    #min_des -= 0.05*min_des;
-    max_des = max([secuencia,salida_deseada]);
-    #max_des += 0.05*max_des;
+    secuencia = training(i,1:longitud_ventana+1);
 
-    for j=1:longitud_ventana
-      secuencia(j) = (secuencia(j)-min_des)/(max_des-min_des);  
-    endfor
-    salida_deseada = (salida_deseada-min_des)/(max_des-min_des);
+    %Normalizacion con margen 0%    
+    [secuencia,min,max] = normalize(secuencia,0);
+    
+    salida_deseada = secuencia(longitud_ventana+1);
+    secuencia(longitud_ventana+1) = [];
     
     %fase hacia delante
     %se introduce valor a valor X(i) a la red
@@ -143,19 +119,13 @@ for epoca=1:max_epocas
   z = zeros(1,capa_salida);
   
   for i=1:tam_test
-    secuencia = test(i,1:longitud_ventana);
-    d = test(i,longitud_ventana+1);#salida deseada
     
-    %Normalizacion
-    min_des = min([secuencia,d]);
-    #min_des -= 0.05*min_des;
-    max_des = max([secuencia,d]);
-    #max_des += 0.05*max_des;
-
-    for j=1:longitud_ventana
-      secuencia(j) = (secuencia(j)-min_des)/(max_des-min_des);  
-    endfor
-    d = (d-min_des)/(max_des-min_des);
+    secuencia = test(i,1:longitud_ventana+1);
+    
+    [secuencia,max,min] = normalize(secuencia,0);   
+    
+    d = secuencia(longitud_ventana+1);
+    secuencia(longitud_ventana+1) = [];
     
     for t=1:longitud_ventana
       x = secuencia(t); #x(i+t)
@@ -164,11 +134,12 @@ for epoca=1:max_epocas
     endfor
     z = sigmoid(y*ws'+wsb);    
   
-    #se desnormaliza la salida de la red   
-    z = (z*(max_des-min_des))+min_des;
-    d = (d*(max_des-min_des))+min_des;
+    #se desnormaliza la salida de la red  
+    z = denormalize(z,max,min);
+    d = denormalize(d,max,min); 
+    
     #consideramos un acierto si la diferencia es menor que 0.05 centimos
-    #printf("deseada %f obtenida %f\n",d,z);
+    printf("deseada %f obtenida %f\n",d,z);
     fflush(stdout);
     if abs(z-d)>0.05
       errores++;
@@ -179,4 +150,4 @@ for epoca=1:max_epocas
   fflush(stdout);
 end
 
-plot(grafica_error);
+#plot(grafica_error);
