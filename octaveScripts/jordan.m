@@ -1,9 +1,9 @@
-function grafica_error = elman(data_filename,longitud_ventana,capa_oculta,capa_entrada,capa_salida,factor_aprendizaje,factor_inercia, max_epocas)
+function grafica_error = jordan(data_filename,longitud_ventana,capa_oculta,capa_entrada,capa_salida,factor_aprendizaje,factor_inercia, max_epocas)
   [training,test] = preprocessing(data_filename,longitud_ventana);
 
 
   [wx,wxb,ws,wsb] = inicializeWeights(capa_entrada,capa_oculta,capa_salida);
-  capa_auxiliar = capa_oculta;
+  capa_auxiliar = capa_salida;
   wo = (rand(capa_oculta,capa_auxiliar)*10)-5;
 
   incremento_s = zeros(size(ws));
@@ -51,15 +51,13 @@ function grafica_error = elman(data_filename,longitud_ventana,capa_oculta,capa_e
       %se introduce valor a valor X(i) a la red
       for t=1:longitud_ventana
         x = secuencia(t); #x(i+t)
-        o = y;
+        o = z;
         y = sigmoid(x*wx'+wxb'+o*wo'); 
-        #no es necesario calcular la salida de la capa de salida porque no calcularemos los delta hasta el ultimo valor.    
+        z = sigmoid(y*ws'+wsb);
       endfor
-      %salida a comparar
-      z = sigmoid(y*ws'+wsb);
       
       %fase hacia atras    
-      ds = (salida_deseada-z)*dsigmoid(z);#un n�mero
+      ds = (salida_deseada-z)*dsigmoid(z);#un numero
       incremento_s = ds*y;
       incremento_s_b = ds;
       
@@ -99,10 +97,10 @@ function grafica_error = elman(data_filename,longitud_ventana,capa_oculta,capa_e
       
       for t=1:longitud_ventana
         x = secuencia(t); #x(i+t)
-        o = y;
+        o = z;
         y = sigmoid(x*wx'+wxb'+o*wo');
-      endfor
-      z = sigmoid(y*ws'+wsb);    
+        z = sigmoid(y*ws'+wsb);
+      endfor  
     
       #se desnormaliza la salida de la red  
       z = denormalize(z,max,min);
@@ -110,7 +108,7 @@ function grafica_error = elman(data_filename,longitud_ventana,capa_oculta,capa_e
       
       #consideramos un acierto si la diferencia es menor que 0.05 centimos
       #printf("deseada %f obtenida %f\n",d,z);
-      #fflush(stdout);
+      fflush(stdout);
       if abs(z-d)<0.05
         aciertos++;
       endif
