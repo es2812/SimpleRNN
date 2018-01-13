@@ -1,5 +1,5 @@
-function grafica_error = jordan(data_filename,longitud_ventana,capa_oculta,capa_entrada,capa_salida,factor_aprendizaje,factor_inercia, max_epocas)
-  [training,test] = preprocessing(data_filename,longitud_ventana);
+function grafica_error = jordan(lines,longitud_ventana,capa_oculta,capa_entrada,capa_salida,factor_aprendizaje,factor_inercia, max_epocas)
+  [training,test] = preprocessing(lines,longitud_ventana);
 
 
   [wx,wxb,ws,wsb] = inicializeWeights(capa_entrada,capa_oculta,capa_salida);

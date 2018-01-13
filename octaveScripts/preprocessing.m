@@ -1,6 +1,5 @@
-function [training, test]=preprocessing(filename,size_window)
+function [training, test]=preprocessing(lines,size_window)
 
-  lines = csvread(filename);
   num_days = length(lines(:,1));
 
   num_sequences = num_days-size_window;
