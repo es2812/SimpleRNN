@@ -17,7 +17,7 @@ for Iberdrola in between December 2016 and December 2017.
 Once you have your dataset, you can open _main.m_ from the root of this repository on your Octave IDE and edit the variable
 _ruta\_fichero_ to point to your data file. 
 
-There's a bunch more options you can set, like the hidden layer size (variable _capa\_oculta_), the input layer size (_capa\_entrada),
+There's a bunch more options you can set, like the hidden layer size (variable _capa\_oculta_), the input layer size (_capa\_entrada_),
 the output layer size (_capa\_salida_), although it's recommended these two are left on their default value of 1,
 since changing that might require tweaking with the implementations.
 
@@ -31,7 +31,7 @@ After that simply write `main` on your Octave console and the program will start
 
 # Program's output.
 
-The program will use the dataset to train and verify the quality of the Elman net first, and then plot the time over rate of success 
+The program will use the dataset to train and verify the quality of the Elman net first, and then plot the rate of success over time
 graph.
 
 It will do the same for the Jordan net, and then output its graph and another one comparing both nets.
